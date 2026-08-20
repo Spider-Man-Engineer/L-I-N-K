@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+import sys
+import os
+
+DIR = os.path.dirname(os.path.realpath(__file__))
+
+usage = """Usage: lnk <command> [options]
+
+Commands:
+  server              Start the link server
+  start               Start a chat client (interactive menu)
+  join <CODE>         Join a room directly by invite code
+  create              Create a new room and join it
+  help                Show this help message
+
+Examples:
+  lnk server          Start the server
+  lnk start           Open the interactive menu
+  lnk create          Create a room and get an invite code
+  lnk join ABC123     Join room with code ABC123
+"""
+
+if len(sys.argv) < 2:
+    print(usage)
+    sys.exit(1)
+
+cmd = sys.argv[1]
+
+if cmd == "server":
+    os.execvp(sys.executable, [sys.executable, os.path.join(DIR, "server.py")])
+
+elif cmd == "start":
+    os.execvp(sys.executable, [sys.executable, os.path.join(DIR, "client.py")])
+
+elif cmd == "join":
+    if len(sys.argv) < 3:
+        print("Usage: lnk join <CODE>")
+        sys.exit(1)
+    code = sys.argv[2].upper()
+    os.environ["LINK_JOIN_CODE"] = code
+    os.execvp(sys.executable, [sys.executable, os.path.join(DIR, "client.py")])
+
+elif cmd == "create":
+    os.environ["LINK_CREATE"] = "1"
+    os.execvp(sys.executable, [sys.executable, os.path.join(DIR, "client.py")])
+
+elif cmd in ("help", "--help", "-h"):
+    print(usage)
+
+else:
+    print(f"Unknown command: {cmd}\n")
+    print(usage)
+    sys.exit(1)
