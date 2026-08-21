@@ -193,7 +193,6 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
         return
 
     try:
-        client.send(username.encode('utf-8'))
         response = client.recv(4096).decode('utf-8')
     except ConnectionResetError:
         error("Server dropped the connection.", "Try running: lnk server")
