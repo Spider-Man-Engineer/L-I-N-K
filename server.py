@@ -17,6 +17,11 @@ BRIGHT = "\033[92m"
 RED = "\033[1;31m"
 YELLOW = "\033[1;33m"
 
+COLORS = ["red", "green", "yellow", "blue", "magenta", "cyan",
+          "light_red", "light_green", "light_yellow", "light_blue",
+          "light_magenta", "light_cyan", "white", "orange", "purple",
+          "pink", "lime", "teal", "coral", "gold"]
+
 rooms = {}
 lock = threading.Lock()
 
@@ -36,6 +41,16 @@ def warn(msg):
 def generate_code(length=6):
     chars = string.ascii_uppercase + string.digits
     return ''.join(random.choices(chars, k=length))
+
+
+def get_next_color(room_code):
+    used = set()
+    for u, c in rooms[room_code].get("colors", {}).items():
+        used.add(c)
+    for color in COLORS:
+        if color not in used:
+            return color
+    return COLORS[len(used) % len(COLORS)]
 
 
 def broadcast(room_code, message, _client=None):
@@ -75,8 +90,13 @@ def handle_client(client):
                 room_code = generate_code()
                 while room_code in rooms:
                     room_code = generate_code()
-                rooms[room_code] = {"clients": {client: username}, "owner": username}
-                client.send(f"CREATED:{room_code}".encode('utf-8'))
+                color = get_next_color(room_code)
+                rooms[room_code] = {
+                    "clients": {client: username},
+                    "colors": {username: color},
+                    "owner": username
+                }
+                client.send(f"CREATED:{room_code}:{color}".encode('utf-8'))
                 log_room(room_code, f"{BRIGHT}{username}{R} created room")
 
             elif resp.startswith("JOIN:"):
@@ -86,8 +106,10 @@ def handle_client(client):
                     client.send("BAD_CODE".encode('utf-8'))
                     client.close()
                     return
+                color = get_next_color(room_code)
                 rooms[room_code]["clients"][client] = username
-                client.send(f"JOINED:{room_code}".encode('utf-8'))
+                rooms[room_code]["colors"][username] = color
+                client.send(f"JOINED:{room_code}:{color}".encode('utf-8'))
 
             elif resp == "JOIN_LATEST":
                 if not active_codes:
@@ -95,8 +117,10 @@ def handle_client(client):
                     client.close()
                     return
                 room_code = active_codes[-1]
+                color = get_next_color(room_code)
                 rooms[room_code]["clients"][client] = username
-                client.send(f"JOINED:{room_code}".encode('utf-8'))
+                rooms[room_code]["colors"][username] = color
+                client.send(f"JOINED:{room_code}:{color}".encode('utf-8'))
 
             else:
                 client.send("ERROR:Invalid response".encode('utf-8'))
@@ -104,11 +128,27 @@ def handle_client(client):
                 return
 
         log_room(room_code, f"{BRIGHT}{username}{R} joined")
-        broadcast(room_code, f"📢 {username} joined the room!".encode('utf-8'), client)
+
+        with lock:
+            if room_code in rooms:
+                for c in list(rooms[room_code]["clients"].keys()):
+                    if c != client:
+                        try:
+                            c.send(f"COLOR:{username}:{rooms[room_code]['colors'][username]}".encode('utf-8'))
+                            c.send(f"JOIN:{username}".encode('utf-8'))
+                        except (BrokenPipeError, OSError):
+                            pass
+                for u, col in rooms[room_code]["colors"].items():
+                    if u != username:
+                        try:
+                            client.send(f"COLOR:{u}:{col}".encode('utf-8'))
+                        except (BrokenPipeError, OSError):
+                            pass
 
         if room_code in rooms and rooms[room_code]["clients"]:
             count = len(rooms[room_code]["clients"])
-            client.send(f"ROOM_INFO:{room_code}:{count}".encode('utf-8'))
+            color_map = ",".join(f"{u}:{c}" for u, c in rooms[room_code]["colors"].items())
+            client.send(f"ROOM_INFO:{room_code}:{count}:{color_map}".encode('utf-8'))
 
         while True:
             message = client.recv(1024)
@@ -117,19 +157,20 @@ def handle_client(client):
             broadcast(room_code, f"{username}: {message.decode('utf-8')}".encode('utf-8'), client)
 
     except ConnectionResetError:
-        warn(f"Connection reset — {username or 'unknown user'} disconnected")
+        warn(f"{username or 'unknown'} disconnected")
     except BrokenPipeError:
-        warn(f"Pipe broken — {username or 'unknown user'} disconnected")
+        warn(f"{username or 'unknown'} disconnected")
     except OSError as e:
-        warn(f"Network error with {username or 'unknown user'}: {e}")
+        warn(f"Error with {username or 'unknown'}: {e}")
     except Exception as e:
-        warn(f"Unexpected error with {username or 'unknown user'}: {e}")
+        warn(f"Error with {username or 'unknown'}: {e}")
 
     if room_code and room_code in rooms:
         with lock:
             rooms[room_code]["clients"].pop(client, None)
+            rooms[room_code].get("colors", {}).pop(username, None)
             log_room(room_code, f"{DIM}{username} left{R}")
-            broadcast(room_code, f"📢 {username} left the room.".encode('utf-8'))
+            broadcast(room_code, f"LEFT:{username}".encode('utf-8'))
             if not rooms[room_code]["clients"]:
                 del rooms[room_code]
                 log_room(room_code, f"{DIM}room deleted (empty){R}")
@@ -148,7 +189,7 @@ def receive_connections():
 {G}      ██║     ██║██║╚██╗██║██╔═██╗ {R}
 {G}      ███████╗██║██║ ╚████║██║  ██╗{R}
 {G}      ╚══════╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝{R}
-{D}      Live Instant Network Kommunication — server{R}
+{D}      server{R}
 """)
 
     try:
@@ -160,10 +201,7 @@ def receive_connections():
         print(f"  {RED}✗ Can't start server: {e}{R}")
         if "Address already in use" in str(e):
             print(f"  {DIM}  → Port {PORT} is already in use.{R}")
-            print(f"  {DIM}  → Kill the other process or use: LINK_PORT=5001 lnk server{R}")
-        elif "Permission denied" in str(e):
-            print(f"  {DIM}  → Port {PORT} requires admin privileges.{R}")
-            print(f"  {DIM}  → Try a higher port: LINK_PORT=8080 lnk server{R}")
+            print(f"  {DIM}  → Use: LINK_PORT=5001 lnk server{R}")
         sys.exit(1)
 
     log(f"{B}Listening{R} on {BRIGHT}{HOST}:{PORT}{R}")
