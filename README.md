@@ -4,7 +4,7 @@
 
 **L**ive **I**nstant **N**etwork **K**ommunication
 
-A lightweight, terminal-based chat app with room invite codes.
+A lightweight, terminal-based chat application with room invite codes. Built in Python with zero dependencies.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 [![Python 3](https://img.shields.io/badge/Python-3-blue.svg)](https://www.python.org/)
