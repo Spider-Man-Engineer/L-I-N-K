@@ -17,6 +17,7 @@ W = "\033[1;37m"
 DIM = "\033[2m"
 BRIGHT = "\033[92m"
 RED = "\033[1;31m"
+YELLOW = "\033[1;33m"
 
 
 def clear():
@@ -29,10 +30,15 @@ def spinner(msg, duration=1.5):
     while time.time() < end:
         sys.stdout.write(f"\r  {G}{next(chars)}{R} {DIM}{msg}{R}")
         sys.stdout.flush()
-        time.time()
         time.sleep(0.08)
     sys.stdout.write(f"\r  {G}✓{R} {msg}\n")
     sys.stdout.flush()
+
+
+def error(msg, hint=None):
+    print(f"  {RED}✗ {msg}{R}")
+    if hint:
+        print(f"  {DIM}  → {hint}{R}")
 
 
 def show_banner():
@@ -64,7 +70,7 @@ def receive_messages(client, username):
         try:
             message = client.recv(4096).decode('utf-8')
             if not message:
-                print(f"\n  {RED}× Disconnected from server.{R}")
+                print(f"\n  {YELLOW}⚠ Server shut down the connection.{R}")
                 client.close()
                 break
             if message.startswith("📢"):
@@ -75,8 +81,16 @@ def receive_messages(client, username):
                     print(f"\r  {G}▸{R} {B}{parts[0]}{R}: {parts[1]}")
                 else:
                     print(f"\r  {message}")
-        except:
-            print(f"\n  {RED}× Connection lost.{R}")
+        except ConnectionResetError:
+            print(f"\n  {YELLOW}⚠ Server closed the connection unexpectedly.{R}")
+            print(f"  {DIM}  → The server may have restarted.{R}")
+            client.close()
+            break
+        except OSError:
+            client.close()
+            break
+        except Exception as e:
+            print(f"\n  {RED}✗ Lost connection: {e}{R}")
             client.close()
             break
 
@@ -91,8 +105,19 @@ def send_messages(client, username):
                 sys.exit(0)
             if msg.strip():
                 client.send(msg.encode('utf-8'))
-        except:
+        except BrokenPipeError:
+            print(f"\n  {RED}✗ Can't send — not connected to server.{R}")
+            print(f"  {DIM}  → The server may have stopped.{R}")
             break
+        except ConnectionResetError:
+            print(f"\n  {RED}✗ Connection was reset by the server.{R}")
+            break
+        except OSError:
+            break
+        except KeyboardInterrupt:
+            print(f"\n\n  {G}👋 Goodbye!{R}\n")
+            client.close()
+            sys.exit(0)
 
 
 def show_room_info(code, count):
@@ -122,7 +147,10 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
 
     username = input(f"  {G}▸{R} {B}Enter your username:{R} ").strip()
     if not username:
-        print(f"  {RED}× Username cannot be empty.{R}")
+        error("Username can't be empty.", "Type a name and press Enter.")
+        return
+    if len(username) > 20:
+        error("Username is too long (max 20 characters).", "Pick a shorter name.")
         return
 
     spinner("Connecting to server...", 1.2)
@@ -131,13 +159,24 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
     try:
         client.connect((host, port))
     except ConnectionRefusedError:
-        print(f"\n  {RED}× Could not connect to {host}:{port}{R}")
-        print(f"  {DIM}Make sure the server is running:{R} {B}lnk server{R}\n")
+        error(f"Can't connect to {host}:{port}", "Is the server running? Try: lnk server")
+        return
+    except TimeoutError:
+        error(f"Connection timed out to {host}:{port}", "Check your network and try again.")
+        return
+    except OSError as e:
+        error(f"Network error: {e}", "Check your internet connection.")
         return
 
-    client.send(username.encode('utf-8'))
-
-    response = client.recv(4096).decode('utf-8')
+    try:
+        client.send(username.encode('utf-8'))
+        response = client.recv(4096).decode('utf-8')
+    except ConnectionResetError:
+        error("Server dropped the connection.", "Try running: lnk server")
+        return
+    except OSError as e:
+        error(f"Connection error: {e}", "Check your network connection.")
+        return
 
     if response == "NICK":
         client.send(username.encode('utf-8'))
@@ -155,7 +194,7 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
             room_code = resp.split(":", 1)[1]
             print(f"  {G}✓ Joined room {room_code}!{R}\n")
         elif resp == "BAD_CODE":
-            print(f"  {RED}× Invalid invite code: {join_code}{R}")
+            error(f"No room found with code \"{join_code}\".", "Check the code and try again. Room codes are 6 characters (e.g. A7X3KP).")
             client.close()
             return
 
@@ -186,6 +225,9 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
 
             elif choice == "2":
                 code = input(f"  {G}▸{R} {B}Enter invite code:{R} ").strip().upper()
+                if not code:
+                    error("Invite code can't be empty.", "Paste or type the 6-character code.")
+                    continue
                 spinner(f"Joining {code}...", 0.8)
                 client.send(f"JOIN:{code}".encode('utf-8'))
                 resp = client.recv(4096).decode('utf-8')
@@ -194,7 +236,7 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
                     print(f"  {G}✓ Joined room {room_code}!{R}\n")
                     break
                 elif resp == "BAD_CODE":
-                    print(f"  {RED}× Invalid code. Try again.{R}")
+                    error(f"No room found with code \"{code}\".", "Double-check the code. It's 6 characters like A7X3KP.")
                     continue
 
             elif choice == "3":
@@ -206,7 +248,7 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
                     print(f"  {G}✓ Joined room {room_code}!{R}\n")
                     break
                 elif resp == "NO_ROOMS":
-                    print(f"  {RED}× No active rooms. Create one first.{R}")
+                    error("No rooms exist yet.", "Create one first with option 1.")
                     continue
 
             elif choice.lower() == 'q':
@@ -214,10 +256,13 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
                 client.close()
                 return
 
+            else:
+                error("Invalid option.", "Pick 1, 2, 3, or q.")
+
     elif response == "NO_ROOMS":
-        print(f"\n  {DIM}No active rooms.{R}")
+        print(f"\n  {DIM}No rooms exist yet.{R}")
         choice = input(f"  {G}▸{R} {B}Create one? (y/n):{R} ").strip().lower()
-        if choice == 'y':
+        if choice in ('y', 'yes'):
             spinner("Creating room...", 0.8)
             client.send("CREATE:".encode('utf-8'))
             resp = client.recv(4096).decode('utf-8')
@@ -228,12 +273,15 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
             client.close()
             return
 
-    info = client.recv(4096).decode('utf-8')
-    if info.startswith("ROOM_INFO:"):
-        parts = info.split(":")
-        code = parts[1]
-        count = parts[2]
-        show_room_info(code, count)
+    try:
+        info = client.recv(4096).decode('utf-8')
+        if info.startswith("ROOM_INFO:"):
+            parts = info.split(":")
+            code = parts[1]
+            count = parts[2]
+            show_room_info(code, count)
+    except (ConnectionResetError, OSError):
+        pass
 
     print(f"  {DIM}Type messages to chat. Type 'quit' to exit.{R}\n")
 
