@@ -116,11 +116,12 @@ def receive_messages(theme, client, username):
         try:
             message = client.recv(4096).decode('utf-8')
             if not message:
-                print(f"\n  {RED}⚠ Server shut down the connection.{R}")
+                print(f"\n  {RED}⚠ Server shut down.{R}")
                 client.close()
                 break
             if message.startswith("📢"):
                 print(f"\r  {GRAY}  {message}{R}")
+                print()
                 sys.stdout.write(f"  {p}›{R} ")
                 sys.stdout.flush()
             else:
@@ -129,7 +130,7 @@ def receive_messages(theme, client, username):
                     name = parts[0]
                     text = parts[1]
                     c = user_color(name)
-                    print(f"\r  {c}{name}{R}  {DIM}▸{R}  {text}")
+                    print(f"\r\n  {c}{name}{R}  {DIM}›{R}  {text}\n")
                     sys.stdout.write(f"  {p}›{R} ")
                     sys.stdout.flush()
                 else:
@@ -137,14 +138,14 @@ def receive_messages(theme, client, username):
                     sys.stdout.write(f"  {p}›{R} ")
                     sys.stdout.flush()
         except ConnectionResetError:
-            print(f"\n  {RED}⚠ Server closed the connection.{R}")
+            print(f"\n  {RED}⚠ Server closed.{R}")
             client.close()
             break
         except OSError:
             client.close()
             break
         except Exception as e:
-            print(f"\n  {RED}✗ Lost connection: {R}{e}")
+            print(f"\n  {RED}✗ Lost connection.{R}")
             client.close()
             break
 
