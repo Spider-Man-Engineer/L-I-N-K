@@ -68,15 +68,8 @@ def show_menu():
 
 
 def show_chat_header(code, username, count):
-    print(f"""
-{G}  ╔═══════════════════════════════════════╗{R}
-{G}  ║{R}  {CYAN}🔗 L.I.N.K.{R}  {DIM}·{R}  {B}Room {code}{R}  {DIM}·{R}  {count} online{R}
-{G}  ╠═══════════════════════════════════════╣{R}
-{G}  ║{R}  {DIM}You are logged in as{R} {BRIGHT}{username}{R}
-{G}  ║{R}  {DIM}Type your message and press Enter{R}
-{G}  ║{R}  {DIM}Type /quit to leave{R}
-{G}  ╚═══════════════════════════════════════╝{R}
-""")
+    print(f"\n  {CYAN}🔗 L.I.N.K.{R}  {DIM}·{R}  {B}Room {code}{R}  {DIM}·{R}  {count} online{R}")
+    print(f"  {DIM}Logged in as {username} · /quit to leave{R}\n")
 
 
 def receive_messages(client, username):
@@ -153,17 +146,9 @@ def show_room_info(code, count):
 
 
 def show_invite(code):
-    print(f"""
-{G}  ╔═══════════════════════════════════════╗{R}
-{G}  ║{R}  {B}Room created!{R}
-{G}  ║{R}
-{G}  ║{R}  {B}Invite code:{R}    {BRIGHT}{code}{R}
-{G}  ║{R}  {B}Join command:{R}   {DIM}lnk join {code}{R}
-{G}  ║{R}
-{G}  ║{R}  {DIM}Share this code with friends{R}
-{G}  ║{R}  {DIM}so they can join your room{R}
-{G}  ╚═══════════════════════════════════════╝{R}
-""")
+    print(f"\n  {G}🔗 Room created!{R}")
+    print(f"  {B}Code:{R} {BRIGHT}{code}{R}")
+    print(f"  {DIM}lnk join {code}{R}\n")
 
 
 def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
