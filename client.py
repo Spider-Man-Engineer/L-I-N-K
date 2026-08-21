@@ -6,35 +6,32 @@ import time
 import itertools
 import readline
 import hashlib
+import random
 
 DEFAULT_HOST = os.environ.get("LINK_HOST", "127.0.0.1")
 DEFAULT_PORT = int(os.environ.get("LINK_PORT", "5000"))
 
-G = "\033[1;32m"
-D = "\033[2;32m"
-B = "\033[1m"
 R = "\033[0m"
-W = "\033[1;37m"
+B = "\033[1m"
 DIM = "\033[2m"
-BRIGHT = "\033[92m"
 RED = "\033[1;31m"
-YELLOW = "\033[1;33m"
-CYAN = "\033[1;36m"
 GRAY = "\033[90m"
 
+THEMES = {
+    "green":    {"p": "\033[1;32m", "d": "\033[2;32m", "b": "\033[92m"},
+    "pink":     {"p": "\033[1;35m", "d": "\033[2;35m", "b": "\033[95m"},
+    "blue":     {"p": "\033[1;34m", "d": "\033[2;34m", "b": "\033[94m"},
+    "cyan":     {"p": "\033[1;36m", "d": "\033[2;36m", "b": "\033[96m"},
+    "yellow":   {"p": "\033[1;33m", "d": "\033[2;33m", "b": "\033[93m"},
+    "red":      {"p": "\033[1;31m", "d": "\033[2;31m", "b": "\033[91m"},
+    "magenta":  {"p": "\033[35m",   "d": "\033[2;35m", "b": "\033[95m"},
+    "white":    {"p": "\033[1;37m", "d": "\033[2;37m", "b": "\033[97m"},
+}
+
 USER_COLORS = [
-    "\033[1;31m",   # red
-    "\033[1;32m",   # green
-    "\033[1;33m",   # yellow
-    "\033[1;34m",   # blue
-    "\033[1;35m",   # magenta
-    "\033[1;36m",   # cyan
-    "\033[91m",     # light red
-    "\033[93m",     # light yellow
-    "\033[94m",     # light blue
-    "\033[95m",     # light magenta
-    "\033[96m",     # light cyan
-    "\033[97m",     # white
+    "\033[1;31m", "\033[1;32m", "\033[1;33m", "\033[1;34m",
+    "\033[1;35m", "\033[1;36m", "\033[91m", "\033[93m",
+    "\033[94m", "\033[95m", "\033[96m", "\033[97m",
 ]
 
 
@@ -43,18 +40,26 @@ def user_color(username):
     return USER_COLORS[h % len(USER_COLORS)]
 
 
+def get_theme(username):
+    h = int(hashlib.md5(username.encode()).hexdigest(), 16)
+    names = list(THEMES.keys())
+    name = names[h % len(names)]
+    return THEMES[name], name
+
+
 def clear():
     os.system('clear' if os.name == 'posix' else 'cls')
 
 
-def spinner(msg, duration=1.5):
+def spinner(theme, msg, duration=1.2):
+    p = theme["p"]
     chars = itertools.cycle(["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"])
     end = time.time() + duration
     while time.time() < end:
-        sys.stdout.write(f"\r  {G}{next(chars)}{R} {DIM}{msg}{R}")
+        sys.stdout.write(f"\r  {p}{next(chars)}{R} {DIM}{msg}{R}")
         sys.stdout.flush()
         time.sleep(0.08)
-    sys.stdout.write(f"\r  {G}✓{R} {msg}\n")
+    sys.stdout.write(f"\r  {p}✓{R} {msg}\n")
     sys.stdout.flush()
 
 
@@ -64,47 +69,59 @@ def error(msg, hint=None):
         print(f"  {DIM}  → {hint}{R}")
 
 
-def show_banner():
-    clear()
+def show_banner(theme):
+    p = theme["p"]
+    d = theme["d"]
     print(f"""
-{G}      ██╗     ██╗███╗   ██╗██╗  ██╗{R}
-{G}      ██║     ██║████╗  ██║██║ ██╔╝{R}
-{G}      ██║     ██║██╔██╗ ██║█████╔╝ {R}
-{G}      ██║     ██║██║╚██╗██║██╔═██╗ {R}
-{G}      ███████╗██║██║ ╚████║██║  ██╗{R}
-{G}      ╚══════╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝{R}
-{D}      Live Instant Network Kommunication{R}
+{p}      ██╗     ██╗███╗   ██╗██╗  ██╗{R}
+{p}      ██║     ██║████╗  ██║██║ ██╔╝{R}
+{p}      ██║     ██║██╔██╗ ██║█████╔╝ {R}
+{p}      ██║     ██║██║╚██╗██║██╔═██╗ {R}
+{p}      ███████╗██║██║ ╚████║██║  ██╗{R}
+{p}      ╚══════╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝{R}
+{d}      Live Instant Network Kommunication{R}
 """)
 
 
-def show_menu():
+def show_menu(theme):
+    p = theme["p"]
     print(f"""
-{G}  ┌─────────────────────────────────┐{R}
-{G}  │{R}  {B}1{R})  Create a new room          {G}│{R}
-{G}  │{R}  {B}2{R})  Join by invite code        {G}│{R}
-{G}  │{R}  {B}3{R})  Join latest room           {G}│{R}
-{G}  │{R}  {B}q{R})  Quit                       {G}│{R}
-{G}  └─────────────────────────────────┘{R}
+{p}  ┌─────────────────────────────────┐{R}
+{p}  │{R}  {B}1{R})  Create a new room          {p}│{R}
+{p}  │{R}  {B}2{R})  Join by invite code        {p}│{R}
+{p}  │{R}  {B}3{R})  Join latest room           {p}│{R}
+{p}  │{R}  {B}q{R})  Quit                       {p}│{R}
+{p}  └─────────────────────────────────┘{R}
 """)
 
 
-def show_chat_header(code, username, count):
+def show_chat_header(theme, code, username, count):
+    p = theme["p"]
     c = user_color(username)
-    print(f"\n  {CYAN}🔗 L.I.N.K.{R}  {DIM}·{R}  {B}Room {code}{R}  {DIM}·{R}  {count} online{R}")
+    print(f"\n  {p}🔗 L.I.N.K.{R}  {DIM}·{R}  {B}Room {code}{R}  {DIM}·{R}  {count} online{R}")
     print(f"  {DIM}Logged in as{R} {c}{username}{R} {DIM}· /quit to leave{R}\n")
 
 
-def receive_messages(client, username):
+def show_invite(theme, code):
+    p = theme["p"]
+    d = theme["d"]
+    print(f"\n  {p}🔗 Room created!{R}")
+    print(f"  {B}Code:{R} {p}{code}{R}")
+    print(f"  {d}lnk join {code}{R}\n")
+
+
+def receive_messages(theme, client, username):
+    p = theme["p"]
     while True:
         try:
             message = client.recv(4096).decode('utf-8')
             if not message:
-                print(f"\n  {YELLOW}⚠ Server shut down the connection.{R}")
+                print(f"\n  {RED}⚠ Server shut down the connection.{R}")
                 client.close()
                 break
             if message.startswith("📢"):
                 print(f"\r  {GRAY}  {message}{R}")
-                sys.stdout.write(f"  {G}›{R} ")
+                sys.stdout.write(f"  {p}›{R} ")
                 sys.stdout.flush()
             else:
                 parts = message.split(":", 1)
@@ -113,32 +130,32 @@ def receive_messages(client, username):
                     text = parts[1]
                     c = user_color(name)
                     print(f"\r  {c}{name}{R}  {DIM}▸{R}  {text}")
-                    sys.stdout.write(f"  {G}›{R} ")
+                    sys.stdout.write(f"  {p}›{R} ")
                     sys.stdout.flush()
                 else:
                     print(f"\r  {message}")
-                    sys.stdout.write(f"  {G}›{R} ")
+                    sys.stdout.write(f"  {p}›{R} ")
                     sys.stdout.flush()
         except ConnectionResetError:
-            print(f"\n  {YELLOW}⚠ Server closed the connection unexpectedly.{R}")
-            print(f"  {DIM}  → The server may have restarted.{R}")
+            print(f"\n  {RED}⚠ Server closed the connection.{R}")
             client.close()
             break
         except OSError:
             client.close()
             break
         except Exception as e:
-            print(f"\n  {RED}✗ Lost connection: {e}{R}")
+            print(f"\n  {RED}✗ Lost connection: {R}{e}")
             client.close()
             break
 
 
-def send_messages(client, username):
+def send_messages(theme, client, username):
+    p = theme["p"]
     while True:
         try:
-            msg = input(f"  {G}›{R} ")
+            msg = input(f"  {p}›{R} ")
             if msg.lower() in ('/quit', 'quit', '/exit', '/q'):
-                print(f"\n  {G}👋 Goodbye!{R}\n")
+                print(f"\n  {p}👋 Goodbye!{R}\n")
                 client.send(f"{username} left the chat.".encode('utf-8'))
                 client.close()
                 sys.exit(0)
@@ -146,7 +163,6 @@ def send_messages(client, username):
                 client.send(msg.encode('utf-8'))
         except BrokenPipeError:
             print(f"\n  {RED}✗ Can't send — not connected to server.{R}")
-            print(f"  {DIM}  → The server may have stopped.{R}")
             break
         except ConnectionResetError:
             print(f"\n  {RED}✗ Connection was reset by the server.{R}")
@@ -154,49 +170,27 @@ def send_messages(client, username):
         except OSError:
             break
         except KeyboardInterrupt:
-            print(f"\n\n  {G}👋 Goodbye!{R}\n")
+            print(f"\n\n  {p}👋 Goodbye!{R}\n")
             client.close()
             sys.exit(0)
 
 
-def show_room_info(code, count):
-    print(f"""
-{G}  ╔═════════════════════════════════╗{R}
-{G}  ║{R}  {B}Room:{R}  {BRIGHT}{code}{R}
-{G}  ║{R}  {B}Users:{R} {BRIGHT}{count}{R} online
-{G}  ╚═════════════════════════════════╝{R}
-""")
-
-
-def show_invite(code):
-    print(f"\n  {G}🔗 Room created!{R}")
-    print(f"  {B}Code:{R} {BRIGHT}{code}{R}")
-    print(f"  {DIM}lnk join {code}{R}\n")
-
-
-def boot():
+def boot(theme):
+    p = theme["p"]
     print(f"\n  {DIM}Initializing LINK...{R}\n")
     time.sleep(0.3)
-    print(f"  {G}✓{R} Network module loaded")
+    print(f"  {p}✓{R} Network module loaded")
     time.sleep(0.2)
-    print(f"  {G}✓{R} Identity module loaded")
+    print(f"  {p}✓{R} Identity module loaded")
     time.sleep(0.2)
-    print(f"  {G}✓{R} Connection ready\n")
+    print(f"  {p}✓{R} Connection ready\n")
 
 
 def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
     clear()
-    print(f"""
-{G}      ██╗     ██╗███╗   ██╗██╗  ██╗{R}
-{G}      ██║     ██║████╗  ██║██║ ██╔╝{R}
-{G}      ██║     ██║██╔██╗ ██║█████╔╝ {R}
-{G}      ██║     ██║██║╚██╗██║██╔═██╗ {R}
-{G}      ███████╗██║██║ ╚████║██║  ██╗{R}
-{G}      ╚══════╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝{R}""")
 
-    boot()
-
-    username = input(f"  {G}›{R} {B}Enter your username:{R} ").strip()
+    print(f"  {DIM}Enter a username to get started{R}\n")
+    username = input(f"  {B}›{R} ").strip()
     if not username:
         error("Username can't be empty.", "Type a name and press Enter.")
         return
@@ -204,10 +198,17 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
         error("Username is too long (max 20 characters).", "Pick a shorter name.")
         return
 
-    c = user_color(username)
-    print(f"\n  {G}✓{R} Identity registered as {c}{username}{R}\n")
+    theme, theme_name = get_theme(username)
+    p = theme["p"]
 
-    spinner("Connecting to LINK network...", 1.2)
+    clear()
+    show_banner(theme)
+    boot(theme)
+
+    print(f"  {p}✓{R} Identity registered as {B}{username}{R}")
+    print(f"  {DIM}  theme: {theme_name}{R}\n")
+
+    spinner(theme, "Connecting to LINK network...", 1.2)
 
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
@@ -235,79 +236,78 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
         client.send(username.encode('utf-8'))
         response = client.recv(4096).decode('utf-8')
 
-    print(f"  {G}✓{R} Connected\n")
+    print(f"  {p}✓{R} Connected\n")
 
     room_code = None
     join_code = os.environ.get("LINK_JOIN_CODE")
     create_room = os.environ.get("LINK_CREATE")
 
     if join_code:
-        spinner(f"Joining room {join_code}...", 0.8)
+        spinner(theme, f"Joining room {join_code}...", 0.8)
         client.send(f"JOIN:{join_code}".encode('utf-8'))
         resp = client.recv(4096).decode('utf-8')
         if resp.startswith("JOINED:"):
             room_code = resp.split(":", 1)[1]
-            print(f"  {G}✓ Joined room {room_code}!{R}")
+            print(f"  {p}✓{R} Joined room {B}{room_code}{R}")
         elif resp == "BAD_CODE":
-            error(f"No room found with code \"{join_code}\".", "Check the code and try again. Room codes are 6 characters (e.g. A7X3KP).")
+            error(f"No room found with code \"{join_code}\".", "Check the code. It's 6 characters like A7X3KP.")
             client.close()
             return
 
     elif create_room:
-        spinner("Creating room...", 0.8)
+        spinner(theme, "Creating room...", 0.8)
         client.send("CREATE:".encode('utf-8'))
         resp = client.recv(4096).decode('utf-8')
         if resp.startswith("CREATED:"):
             room_code = resp.split(":", 1)[1]
-            show_invite(room_code)
+            show_invite(theme, room_code)
 
     elif response.startswith("ROOM_LIST:"):
         codes = response.split(":", 1)[1].split(",") if response.split(":", 1)[1] else []
-        print()
-        show_menu()
+        show_menu(theme)
 
         while True:
-            choice = input(f"  {G}›{R} {B}Choose:{R} ").strip()
+            choice = input(f"  {p}›{R} {B}Choose:{R} ").strip()
 
             if choice == "1":
-                spinner("Creating room...", 0.8)
+                spinner(theme, "Creating room...", 0.8)
                 client.send("CREATE:".encode('utf-8'))
                 resp = client.recv(4096).decode('utf-8')
                 if resp.startswith("CREATED:"):
                     room_code = resp.split(":", 1)[1]
-                    show_invite(room_code)
+                    show_invite(theme, room_code)
                 break
 
             elif choice == "2":
-                code = input(f"  {G}›{R} {B}Enter invite code:{R} ").strip().upper()
+                code = input(f"  {p}›{R} {B}Enter invite code:{R} ").strip().upper()
                 if not code:
-                    error("Invite code can't be empty.", "Paste or type the 6-character code.")
+                    error("Invite code can't be empty.", "Type the 6-character code.")
                     continue
-                spinner(f"Joining {code}...", 0.8)
+                spinner(theme, f"Joining {code}...", 0.8)
                 client.send(f"JOIN:{code}".encode('utf-8'))
                 resp = client.recv(4096).decode('utf-8')
                 if resp.startswith("JOINED:"):
                     room_code = resp.split(":", 1)[1]
-                    print(f"  {G}✓ Joined room {room_code}!{R}")
+                    print(f"  {p}✓{R} Joined room {B}{room_code}{R}")
                     break
                 elif resp == "BAD_CODE":
                     error(f"No room found with code \"{code}\".", "Double-check the code. It's 6 characters like A7X3KP.")
                     continue
 
             elif choice == "3":
-                spinner("Joining latest room...", 0.8)
+                spinner(theme, "Joining latest room...", 0.8)
                 client.send("JOIN_LATEST".encode('utf-8'))
                 resp = client.recv(4096).decode('utf-8')
                 if resp.startswith("JOINED:"):
                     room_code = resp.split(":", 1)[1]
-                    print(f"  {G}✓ Joined room {room_code}!{R}")
+                    print(f"  {p}✓{R} Joined room {B}{room_code}{R}")
                     break
                 elif resp == "NO_ROOMS":
                     error("No rooms exist yet.", "Create one first with option 1.")
                     continue
 
             elif choice.lower() == 'q':
-                print(f"\n  {G}👋 Goodbye!{R}\n")
+                print(f"\n  {p}👋 Goodbye!{R}\n")
                 client.close()
                 return
 
@@ -316,14 +316,14 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
 
     elif response == "NO_ROOMS":
         print(f"\n  {DIM}No rooms exist yet.{R}")
-        choice = input(f"  {G}›{R} {B}Create one? (y/n):{R} ").strip().lower()
+        choice = input(f"  {p}›{R} {B}Create one? (y/n):{R} ").strip().lower()
         if choice in ('y', 'yes'):
-            spinner("Creating room...", 0.8)
+            spinner(theme, "Creating room...", 0.8)
             client.send("CREATE:".encode('utf-8'))
             resp = client.recv(4096).decode('utf-8')
             if resp.startswith("CREATED:"):
                 room_code = resp.split(":", 1)[1]
-                show_invite(room_code)
+                show_invite(theme, room_code)
         else:
             client.close()
             return
@@ -334,14 +334,14 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
             parts = info.split(":")
             code = parts[1]
             count = parts[2]
-            show_chat_header(code, username, count)
+            show_chat_header(theme, code, username, count)
     except (ConnectionResetError, OSError):
         pass
 
-    recv_thread = threading.Thread(target=receive_messages, args=(client, username), daemon=True)
+    recv_thread = threading.Thread(target=receive_messages, args=(theme, client, username), daemon=True)
     recv_thread.start()
 
-    send_messages(client, username)
+    send_messages(theme, client, username)
 
 
 if __name__ == "__main__":
