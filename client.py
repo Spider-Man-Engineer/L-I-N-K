@@ -98,15 +98,15 @@ def show_menu(theme):
 def show_chat_header(theme, code, username, count):
     p = theme["p"]
     c = user_color(username)
-    print(f"\n  {p}🔗 L.I.N.K.{R}  {DIM}·{R}  {B}Room {code}{R}  {DIM}·{R}  {count} online{R}")
-    print(f"  {DIM}Logged in as{R} {c}{username}{R} {DIM}· /quit to leave{R}\n")
+    print(f"\n  {p}✓{R} Room {B}{code}{R} · {count} online")
+    print(f"  {DIM}{c}{username}{R} {DIM}· /quit to leave{R}\n")
 
 
 def show_invite(theme, code):
     p = theme["p"]
     d = theme["d"]
-    print(f"\n  {p}🔗 Room created!{R}")
-    print(f"  {B}Code:{R} {p}{code}{R}")
+    print(f"\n  {p}✓ Room created{R}")
+    print(f"  {B}{code}{R}")
     print(f"  {d}lnk join {code}{R}\n")
 
 
@@ -177,13 +177,13 @@ def send_messages(theme, client, username):
 
 def boot(theme):
     p = theme["p"]
-    print(f"\n  {DIM}Initializing LINK...{R}\n")
+    print(f"\n  {DIM}Initializing...{R}\n")
     time.sleep(0.3)
-    print(f"  {p}✓{R} Network module loaded")
+    print(f"  {p}✓{R} Network loaded")
     time.sleep(0.2)
-    print(f"  {p}✓{R} Identity module loaded")
+    print(f"  {p}✓{R} Identity loaded")
     time.sleep(0.2)
-    print(f"  {p}✓{R} Connection ready\n")
+    print(f"  {p}✓{R} Ready\n")
 
 
 def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
@@ -205,8 +205,7 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
     show_banner(theme)
     boot(theme)
 
-    print(f"  {p}✓{R} Identity registered as {B}{username}{R}")
-    print(f"  {DIM}  theme: {theme_name}{R}\n")
+    print(f"  {p}✓{R} {B}{username}{R} {DIM}({theme_name}){R}\n")
 
     spinner(theme, "Connecting to LINK network...", 1.2)
 
@@ -236,7 +235,7 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
         client.send(username.encode('utf-8'))
         response = client.recv(4096).decode('utf-8')
 
-    print(f"  {p}✓{R} Connected\n")
+    print(f"  {p}✓{R} Connected")
 
     room_code = None
     join_code = os.environ.get("LINK_JOIN_CODE")
@@ -248,7 +247,7 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
         resp = client.recv(4096).decode('utf-8')
         if resp.startswith("JOINED:"):
             room_code = resp.split(":", 1)[1]
-            print(f"  {p}✓{R} Joined room {B}{room_code}{R}")
+            print(f"  {p}✓{R} Joined {B}{room_code}{R}")
         elif resp == "BAD_CODE":
             error(f"No room found with code \"{join_code}\".", "Check the code. It's 6 characters like A7X3KP.")
             client.close()
@@ -288,7 +287,7 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
                 resp = client.recv(4096).decode('utf-8')
                 if resp.startswith("JOINED:"):
                     room_code = resp.split(":", 1)[1]
-                    print(f"  {p}✓{R} Joined room {B}{room_code}{R}")
+                    print(f"  {p}✓{R} Joined {B}{room_code}{R}")
                     break
                 elif resp == "BAD_CODE":
                     error(f"No room found with code \"{code}\".", "Double-check the code. It's 6 characters like A7X3KP.")
@@ -300,7 +299,7 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
                 resp = client.recv(4096).decode('utf-8')
                 if resp.startswith("JOINED:"):
                     room_code = resp.split(":", 1)[1]
-                    print(f"  {p}✓{R} Joined room {B}{room_code}{R}")
+                    print(f"  {p}✓{R} Joined {B}{room_code}{R}")
                     break
                 elif resp == "NO_ROOMS":
                     error("No rooms exist yet.", "Create one first with option 1.")
