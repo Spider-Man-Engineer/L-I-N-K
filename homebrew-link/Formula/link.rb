@@ -1,7 +1,7 @@
 class Link < Formula
   desc "Live Instant Network Kommunication — terminal chat with room invite codes"
-  homepage "https://github.com/Spider-Man-Engineer/L-I-N-K"
-  url "https://github.com/Spider-Man-Engineer/L-I-N-K/archive/refs/tags/v0.1.0.tar.gz"
+  homepage "https://github.com/SyntaxSlayerr/L-I-N-K"
+  url "https://github.com/SyntaxSlayerr/L-I-N-K/archive/refs/tags/v0.1.0.tar.gz"
   sha256 "PLACEHOLDER"
   license "MIT"
 

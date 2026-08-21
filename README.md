@@ -1,32 +1,43 @@
-# 🔗 Link
+<div align="center">
 
-> **L**ive **I**nstant **N**etwork **K**ommunication
+# 🔗 L.I.N.K.
 
-A lightweight, terminal-based chat app with **room invite codes**. Spin up a server, create rooms, share the code, and your friends can join from anywhere on the network.
+**L**ive **I**nstant **N**etwork **K**ommunication
 
-## ✨ Features
+A lightweight, terminal-based chat app with room invite codes.
 
-- 🏠 **Room system** — create private rooms with unique 6-char invite codes
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+[![Python 3](https://img.shields.io/badge/Python-3-blue.svg)](https://www.python.org/)
+[![Homebrew](https://img.shields.io/badge/Install-Homebrew-orange.svg)](#install)
+
+</div>
+
+---
+
+## Features
+
+- 🏠 **Room system** — create private rooms with unique 6-character invite codes
 - 🔗 **Share codes** — send the code to anyone to let them join
 - 👥 **Multi-client** — unlimited users per room
 - ⚡ **Real-time** — instant messaging over TCP
 - 🖥️ **CLI interface** — interactive menu or direct commands
+- 🎨 **Green UI** — clean, animated terminal interface
 - 📦 **Homebrew install** — one command to install
 - 🔧 **Zero dependencies** — Python 3 only, standard library
 
-## 📥 Install
+## Install
 
-### 🍺 Homebrew (macOS / Linux)
+### Homebrew
 
 ```sh
-brew tap Spider-Man-Engineer/link
+brew tap SyntaxSlayerr/L-I-N-K https://github.com/SyntaxSlayerr/L-I-N-K.git
 brew install link
 ```
 
-### 🔧 Manual
+### Manual
 
 ```sh
-git clone https://github.com/Spider-Man-Engineer/L-I-N-K.git
+git clone https://github.com/SyntaxSlayerr/L-I-N-K.git
 cd L-I-N-K
 chmod +x install.sh
 ./install.sh
@@ -38,7 +49,7 @@ Then add to your shell profile:
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-## 🚀 Usage
+## Usage
 
 ### Start the server
 
@@ -52,12 +63,15 @@ lnk server
 lnk create
 ```
 
-Output:
-
 ```
-  ✅ Room created!
-  🔗 Invite code: A7X3KP
-  Share this code with friends to let them join!
+  ╔═════════════════════════════════╗
+  ║  Room created!
+  ║
+  ║  Invite code:  A7X3KP
+  ║
+  ║  Share this code with friends
+  ║  so they can join your room
+  ╚═════════════════════════════════╝
 ```
 
 ### Join by invite code
@@ -73,33 +87,33 @@ lnk start
 ```
 
 ```
-  1) Create a new room
-  2) Join by invite code
-  3) Join latest room
-  q) Quit
-
-  Choose:
+  ┌─────────────────────────────────┐
+  │  1)  Create a new room          │
+  │  2)  Join by invite code        │
+  │  3)  Join latest room           │
+  │  q)  Quit                       │
+  └─────────────────────────────────┘
 ```
 
-### All commands
+### All Commands
 
 | Command | Description |
 |---------|-------------|
 | `lnk server` | Start the chat server |
-| `lnk create` | Create a room and join it |
+| `lnk create` | Create a room and get an invite code |
 | `lnk join <CODE>` | Join a room by invite code |
 | `lnk start` | Open the interactive menu |
 | `lnk help` | Show help message |
 
-## 🔗 How Invites Work
+## How Invites Work
 
 1. **Host** runs `lnk server` to start the server
-2. **User A** runs `lnk create` — gets a 6-char invite code (e.g. `A7X3KP`)
+2. **User A** runs `lnk create` → gets a 6-char invite code
 3. **User A** shares the code with friends
-4. **User B** runs `lnk join A7X3KP` — joins the same room
+4. **User B** runs `lnk join A7X3KP` → joins the same room
 5. Rooms auto-delete when the last person leaves
 
-## 🌐 Network Setup
+## Network Setup
 
 To let friends on your LAN join, use your local IP:
 
@@ -114,7 +128,7 @@ export LINK_HOST=192.168.1.50
 export LINK_PORT=5000
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 L-I-N-K/
@@ -124,12 +138,18 @@ L-I-N-K/
 ├── install.sh       # Installer
 ├── uninstall.sh     # Uninstaller
 ├── build.sh         # Homebrew tarball builder
+├── LICENSE          # MIT License
+├── CONTRIBUTING.md  # Contribution guide
 └── homebrew-link/
     └── Formula/
         └── link.rb  # Homebrew formula
 ```
 
-## 🗑️ Uninstall
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to get started.
+
+## Uninstall
 
 ```sh
 ./uninstall.sh
@@ -139,9 +159,19 @@ Or via Homebrew:
 
 ```sh
 brew uninstall link
-brew untap Spider-Man-Engineer/link
+brew untap SyntaxSlayerr/L-I-N-K
 ```
 
-## 📝 License
+## License
 
-MIT
+[MIT](LICENSE)
+
+---
+
+<div align="center">
+
+**Made with ❤️ for the terminal community**
+
+⭐ Star this repo if you find it useful!
+
+</div>
