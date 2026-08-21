@@ -82,7 +82,7 @@ def receive_messages(client, username):
                 break
             if message.startswith("📢"):
                 print(f"\r  {GRAY}  {message}{R}")
-                sys.stdout.write(f"  {G}>{R} ")
+                sys.stdout.write(f"  {G}›{R} ")
                 sys.stdout.flush()
             else:
                 parts = message.split(":", 1)
@@ -90,11 +90,11 @@ def receive_messages(client, username):
                     name = parts[0]
                     text = parts[1]
                     print(f"\r  {BRIGHT}{name}{R}  {DIM}▸{R}  {text}")
-                    sys.stdout.write(f"  {G}>{R} ")
+                    sys.stdout.write(f"  {G}›{R} ")
                     sys.stdout.flush()
                 else:
                     print(f"\r  {message}")
-                    sys.stdout.write(f"  {G}>{R} ")
+                    sys.stdout.write(f"  {G}›{R} ")
                     sys.stdout.flush()
         except ConnectionResetError:
             print(f"\n  {YELLOW}⚠ Server closed the connection unexpectedly.{R}")
@@ -113,7 +113,7 @@ def receive_messages(client, username):
 def send_messages(client, username):
     while True:
         try:
-            msg = input(f"  {G}>{R} ")
+            msg = input(f"  {G}›{R} ")
             if msg.lower() in ('/quit', 'quit', '/exit', '/q'):
                 print(f"\n  {G}👋 Goodbye!{R}\n")
                 client.send(f"{username} left the chat.".encode('utf-8'))
@@ -151,10 +151,29 @@ def show_invite(code):
     print(f"  {DIM}lnk join {code}{R}\n")
 
 
-def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
-    show_banner()
+def boot():
+    print(f"\n  {DIM}Initializing LINK...{R}\n")
+    time.sleep(0.3)
+    print(f"  {G}✓{R} Network module loaded")
+    time.sleep(0.2)
+    print(f"  {G}✓{R} Identity module loaded")
+    time.sleep(0.2)
+    print(f"  {G}✓{R} Connection ready\n")
 
-    username = input(f"  {G}>{R} {B}Enter your username:{R} ").strip()
+
+def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
+    clear()
+    print(f"""
+{G}      ██╗     ██╗███╗   ██╗██╗  ██╗{R}
+{G}      ██║     ██║████╗  ██║██║ ██╔╝{R}
+{G}      ██║     ██║██╔██╗ ██║█████╔╝ {R}
+{G}      ██║     ██║██║╚██╗██║██╔═██╗ {R}
+{G}      ███████╗██║██║ ╚████║██║  ██╗{R}
+{G}      ╚══════╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝{R}""")
+
+    boot()
+
+    username = input(f"  {G}›{R} {B}Enter your username:{R} ").strip()
     if not username:
         error("Username can't be empty.", "Type a name and press Enter.")
         return
@@ -162,7 +181,9 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
         error("Username is too long (max 20 characters).", "Pick a shorter name.")
         return
 
-    spinner("Connecting to server...", 1.2)
+    print(f"\n  {G}✓{R} Identity registered as {BRIGHT}{username}{R}\n")
+
+    spinner("Connecting to LINK network...", 1.2)
 
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
@@ -189,6 +210,8 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
     if response == "NICK":
         client.send(username.encode('utf-8'))
         response = client.recv(4096).decode('utf-8')
+
+    print(f"  {G}✓{R} Connected\n")
 
     room_code = None
     join_code = os.environ.get("LINK_JOIN_CODE")
@@ -220,7 +243,7 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
         show_menu()
 
         while True:
-            choice = input(f"  {G}>{R} {B}Choose:{R} ").strip()
+            choice = input(f"  {G}›{R} {B}Choose:{R} ").strip()
 
             if choice == "1":
                 spinner("Creating room...", 0.8)
@@ -232,7 +255,7 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
                 break
 
             elif choice == "2":
-                code = input(f"  {G}>{R} {B}Enter invite code:{R} ").strip().upper()
+                code = input(f"  {G}›{R} {B}Enter invite code:{R} ").strip().upper()
                 if not code:
                     error("Invite code can't be empty.", "Paste or type the 6-character code.")
                     continue
@@ -269,7 +292,7 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
 
     elif response == "NO_ROOMS":
         print(f"\n  {DIM}No rooms exist yet.{R}")
-        choice = input(f"  {G}>{R} {B}Create one? (y/n):{R} ").strip().lower()
+        choice = input(f"  {G}›{R} {B}Create one? (y/n):{R} ").strip().lower()
         if choice in ('y', 'yes'):
             spinner("Creating room...", 0.8)
             client.send("CREATE:".encode('utf-8'))
