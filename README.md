@@ -115,10 +115,12 @@ lnk start
 
 ## Network Setup
 
-To let friends on your LAN join, use your local IP:
+By default, the server only accepts connections from your own machine (localhost).
+
+To let friends on your LAN join, start the server with your local IP:
 
 ```sh
-LINK_HOST=192.168.1.50 lnk start
+LINK_HOST=192.168.1.50 lnk server
 ```
 
 Or set it in your shell profile:
@@ -127,6 +129,8 @@ Or set it in your shell profile:
 export LINK_HOST=192.168.1.50
 export LINK_PORT=5000
 ```
+
+Then others on your network can connect with `lnk join <CODE>`.
 
 ## Project Structure
 

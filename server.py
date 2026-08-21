@@ -5,7 +5,7 @@ import random
 import os
 import sys
 
-HOST = '0.0.0.0'
+HOST = os.environ.get("LINK_HOST", "127.0.0.1")
 PORT = int(os.environ.get("LINK_PORT", "5000"))
 
 G = "\033[1;32m"
