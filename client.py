@@ -5,6 +5,7 @@ import os
 import time
 import itertools
 import readline
+import hashlib
 
 DEFAULT_HOST = os.environ.get("LINK_HOST", "127.0.0.1")
 DEFAULT_PORT = int(os.environ.get("LINK_PORT", "5000"))
@@ -20,6 +21,26 @@ RED = "\033[1;31m"
 YELLOW = "\033[1;33m"
 CYAN = "\033[1;36m"
 GRAY = "\033[90m"
+
+USER_COLORS = [
+    "\033[1;31m",   # red
+    "\033[1;32m",   # green
+    "\033[1;33m",   # yellow
+    "\033[1;34m",   # blue
+    "\033[1;35m",   # magenta
+    "\033[1;36m",   # cyan
+    "\033[91m",     # light red
+    "\033[93m",     # light yellow
+    "\033[94m",     # light blue
+    "\033[95m",     # light magenta
+    "\033[96m",     # light cyan
+    "\033[97m",     # white
+]
+
+
+def user_color(username):
+    h = int(hashlib.md5(username.encode()).hexdigest(), 16)
+    return USER_COLORS[h % len(USER_COLORS)]
 
 
 def clear():
@@ -68,8 +89,9 @@ def show_menu():
 
 
 def show_chat_header(code, username, count):
+    c = user_color(username)
     print(f"\n  {CYAN}🔗 L.I.N.K.{R}  {DIM}·{R}  {B}Room {code}{R}  {DIM}·{R}  {count} online{R}")
-    print(f"  {DIM}Logged in as {username} · /quit to leave{R}\n")
+    print(f"  {DIM}Logged in as{R} {c}{username}{R} {DIM}· /quit to leave{R}\n")
 
 
 def receive_messages(client, username):
@@ -89,7 +111,8 @@ def receive_messages(client, username):
                 if len(parts) == 2:
                     name = parts[0]
                     text = parts[1]
-                    print(f"\r  {BRIGHT}{name}{R}  {DIM}▸{R}  {text}")
+                    c = user_color(name)
+                    print(f"\r  {c}{name}{R}  {DIM}▸{R}  {text}")
                     sys.stdout.write(f"  {G}›{R} ")
                     sys.stdout.flush()
                 else:
@@ -181,7 +204,8 @@ def run_client(host=DEFAULT_HOST, port=DEFAULT_PORT):
         error("Username is too long (max 20 characters).", "Pick a shorter name.")
         return
 
-    print(f"\n  {G}✓{R} Identity registered as {BRIGHT}{username}{R}\n")
+    c = user_color(username)
+    print(f"\n  {G}✓{R} Identity registered as {c}{username}{R}\n")
 
     spinner("Connecting to LINK network...", 1.2)
 
