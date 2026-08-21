@@ -2,22 +2,39 @@
 import sys
 import os
 
+G = "\033[1;32m"
+D = "\033[2;32m"
+B = "\033[1m"
+R = "\033[0m"
+DIM = "\033[2m"
+BRIGHT = "\033[92m"
+RED = "\033[1;31m"
+
 DIR = os.path.dirname(os.path.realpath(__file__))
 
-usage = """Usage: lnk <command> [options]
+usage = f"""
+{G}      ██╗     ██╗███╗   ██╗██╗  ██╗{R}
+{G}      ██║     ██║████╗  ██║██║ ██╔╝{R}
+{G}      ██║     ██║██╔██╗ ██║█████╔╝ {R}
+{G}      ██║     ██║██║╚██╗██║██╔═██╗ {R}
+{G}      ███████╗██║██║ ╚████║██║  ██╗{R}
+{G}      ╚══════╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝{R}
+{D}      Live Instant Network Kommunication{R}
 
-Commands:
-  server              Start the link server
-  start               Start a chat client (interactive menu)
-  join <CODE>         Join a room directly by invite code
-  create              Create a new room and join it
-  help                Show this help message
+{B}Usage:{R} lnk <command> [options]
 
-Examples:
-  lnk server          Start the server
-  lnk start           Open the interactive menu
-  lnk create          Create a room and get an invite code
-  lnk join ABC123     Join room with code ABC123
+{B}Commands:{R}
+  {BRIGHT}server{R}              Start the link server
+  {BRIGHT}start{R}               Start a chat client (interactive menu)
+  {BRIGHT}join{R} {D}<CODE>{R}         Join a room directly by invite code
+  {BRIGHT}create{R}              Create a new room and join it
+  {BRIGHT}help{R}                Show this help message
+
+{B}Examples:{R}
+  {D}lnk server{R}          Start the server
+  {D}lnk start{R}           Open the interactive menu
+  {D}lnk create{R}          Create a room and get an invite code
+  {D}lnk join ABC123{R}     Join room with code ABC123
 """
 
 if len(sys.argv) < 2:
@@ -34,7 +51,7 @@ elif cmd == "start":
 
 elif cmd == "join":
     if len(sys.argv) < 3:
-        print("Usage: lnk join <CODE>")
+        print(f"  {B}Usage:{R} lnk join <CODE>")
         sys.exit(1)
     code = sys.argv[2].upper()
     os.environ["LINK_JOIN_CODE"] = code
@@ -48,6 +65,6 @@ elif cmd in ("help", "--help", "-h"):
     print(usage)
 
 else:
-    print(f"Unknown command: {cmd}\n")
+    print(f"  {RED}× Unknown command: {cmd}{R}\n")
     print(usage)
     sys.exit(1)

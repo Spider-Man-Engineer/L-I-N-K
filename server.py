@@ -2,9 +2,18 @@ import socket
 import threading
 import string
 import random
+import os
 
 HOST = '0.0.0.0'
-PORT = 5000
+PORT = int(os.environ.get("LINK_PORT", "5000"))
+
+G = "\033[1;32m"
+D = "\033[2;32m"
+B = "\033[1m"
+R = "\033[0m"
+DIM = "\033[2m"
+BRIGHT = "\033[92m"
+RED = "\033[1;31m"
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -15,6 +24,14 @@ rooms = {}
 lock = threading.Lock()
 
 
+def log(msg):
+    print(f"  {G}▸{R} {msg}")
+
+
+def log_room(code, msg):
+    print(f"  {D}[{code}]{R} {msg}")
+
+
 def generate_code(length=6):
     chars = string.ascii_uppercase + string.digits
     return ''.join(random.choices(chars, k=length))
@@ -22,7 +39,7 @@ def generate_code(length=6):
 
 def broadcast(room_code, message, _client=None):
     with lock:
-        for client, _ in rooms.get(room_code, {}).get("clients", {}).keys():
+        for client in list(rooms.get(room_code, {}).get("clients", {}).keys()):
             if client != _client:
                 try:
                     client.send(message)
@@ -50,10 +67,9 @@ def handle_client(client):
 
             if resp.startswith("CREATE:"):
                 room_code = generate_code()
-                rooms[room_code] = {"clients": {}, "owner": username}
-                rooms[room_code]["clients"] = {client: username}
+                rooms[room_code] = {"clients": {client: username}, "owner": username}
                 client.send(f"CREATED:{room_code}".encode('utf-8'))
-                print(f"[{room_code}] Room created by {username}")
+                log_room(room_code, f"{BRIGHT}{username}{R} created room")
 
             elif resp.startswith("JOIN:"):
                 room_code = resp.split(":", 1)[1].strip().upper()
@@ -78,7 +94,7 @@ def handle_client(client):
                 client.close()
                 return
 
-        print(f"[{room_code}] {username} joined")
+        log_room(room_code, f"{BRIGHT}{username}{R} joined")
         broadcast(room_code, f"📢 {username} joined the room!".encode('utf-8'), client)
 
         if room_code in rooms and rooms[room_code]["clients"]:
@@ -97,11 +113,11 @@ def handle_client(client):
     if room_code and room_code in rooms:
         with lock:
             rooms[room_code]["clients"].pop(client, None)
-            print(f"[{room_code}] {username} left")
+            log_room(room_code, f"{DIM}{username} left{R}")
             broadcast(room_code, f"📢 {username} left the room.".encode('utf-8'))
             if not rooms[room_code]["clients"]:
                 del rooms[room_code]
-                print(f"[{room_code}] Room deleted (empty)")
+                log_room(room_code, f"{DIM}room deleted (empty){R}")
 
     try:
         client.close()
@@ -110,10 +126,21 @@ def handle_client(client):
 
 
 def receive_connections():
-    print(f"Link server running on {HOST}:{PORT}...")
+    print(f"""
+{G}      ██╗     ██╗███╗   ██╗██╗  ██╗{R}
+{G}      ██║     ██║████╗  ██║██║ ██╔╝{R}
+{G}      ██║     ██║██╔██╗ ██║█████╔╝ {R}
+{G}      ██║     ██║██║╚██╗██║██╔═██╗ {R}
+{G}      ███████╗██║██║ ╚████║██║  ██╗{R}
+{G}      ╚══════╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝{R}
+{D}      Live Instant Network Kommunication — server{R}
+""")
+    log(f"{B}Listening{R} on {BRIGHT}{HOST}:{PORT}{R}")
+    log(f"{DIM}Waiting for connections...{R}\n")
+
     while True:
         client, address = server.accept()
-        print(f"New connection: {address}")
+        log(f"{BRIGHT}{address[0]}:{address[1]}{R} connected")
         thread = threading.Thread(target=handle_client, args=(client,), daemon=True)
         thread.start()
 

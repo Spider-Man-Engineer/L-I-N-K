@@ -1,35 +1,38 @@
-# 🔗 link
+# 🔗 Link
 
-A lightweight, terminal-based chat application built with Python 💬. Spin up a server, connect as many clients as you want, and chat in real time — all from the command line.
+> **L**ive **I**nstant **N**etwork **K**ommunication
+
+A lightweight, terminal-based chat app with **room invite codes**. Spin up a server, create rooms, share the code, and your friends can join from anywhere on the network.
 
 ## ✨ Features
 
-- 🖥️ Simple CLI interface
-- ⚡ Real-time messaging
-- 👥 Multi-client support
-- 🏠 Self-hosted — run on your own machine or LAN
-- 📦 Installable via Homebrew or manual setup
-- 🔧 Zero dependencies — uses only the Python standard library
+- 🏠 **Room system** — create private rooms with unique 6-char invite codes
+- 🔗 **Share codes** — send the code to anyone to let them join
+- 👥 **Multi-client** — unlimited users per room
+- ⚡ **Real-time** — instant messaging over TCP
+- 🖥️ **CLI interface** — interactive menu or direct commands
+- 📦 **Homebrew install** — one command to install
+- 🔧 **Zero dependencies** — Python 3 only, standard library
 
 ## 📥 Install
 
-### 🍺 Homebrew
+### 🍺 Homebrew (macOS / Linux)
 
 ```sh
-brew tap nerf/link
+brew tap Spider-Man-Engineer/link
 brew install link
 ```
 
 ### 🔧 Manual
 
 ```sh
-git clone https://github.com/nerf/link.git
-cd link
+git clone https://github.com/Spider-Man-Engineer/L-I-N-K.git
+cd L-I-N-K
 chmod +x install.sh
 ./install.sh
 ```
 
-Make sure `~/.local/bin` is in your `PATH`:
+Then add to your shell profile:
 
 ```sh
 export PATH="$HOME/.local/bin:$PATH"
@@ -37,31 +40,94 @@ export PATH="$HOME/.local/bin:$PATH"
 
 ## 🚀 Usage
 
-### 1. Start the server
+### Start the server
 
 ```sh
 lnk server
 ```
 
-You should see:
+### Create a room
+
+```sh
+lnk create
+```
+
+Output:
 
 ```
-Server is running on port 5000...
+  ✅ Room created!
+  🔗 Invite code: A7X3KP
+  Share this code with friends to let them join!
 ```
 
-### 2. Connect a client
+### Join by invite code
 
-Open another terminal (or another machine on the same network) and run:
+```sh
+lnk join A7X3KP
+```
+
+### Interactive menu
 
 ```sh
 lnk start
 ```
 
-Enter a username when prompted and start chatting! 🎉
+```
+  1) Create a new room
+  2) Join by invite code
+  3) Join latest room
+  q) Quit
 
-### 3. Disconnect
+  Choose:
+```
 
-Type `quit` to leave the chat.
+### All commands
+
+| Command | Description |
+|---------|-------------|
+| `lnk server` | Start the chat server |
+| `lnk create` | Create a room and join it |
+| `lnk join <CODE>` | Join a room by invite code |
+| `lnk start` | Open the interactive menu |
+| `lnk help` | Show help message |
+
+## 🔗 How Invites Work
+
+1. **Host** runs `lnk server` to start the server
+2. **User A** runs `lnk create` — gets a 6-char invite code (e.g. `A7X3KP`)
+3. **User A** shares the code with friends
+4. **User B** runs `lnk join A7X3KP` — joins the same room
+5. Rooms auto-delete when the last person leaves
+
+## 🌐 Network Setup
+
+To let friends on your LAN join, use your local IP:
+
+```sh
+LINK_HOST=192.168.1.50 lnk start
+```
+
+Or set it in your shell profile:
+
+```sh
+export LINK_HOST=192.168.1.50
+export LINK_PORT=5000
+```
+
+## 📁 Project Structure
+
+```
+L-I-N-K/
+├── lnk              # CLI entry point
+├── server.py        # Chat server with room management
+├── client.py        # Chat client with invite flow
+├── install.sh       # Installer
+├── uninstall.sh     # Uninstaller
+├── build.sh         # Homebrew tarball builder
+└── homebrew-link/
+    └── Formula/
+        └── link.rb  # Homebrew formula
+```
 
 ## 🗑️ Uninstall
 
@@ -69,19 +135,11 @@ Type `quit` to leave the chat.
 ./uninstall.sh
 ```
 
-## 📁 Project Structure
+Or via Homebrew:
 
-```
-link/
-├── lnk          # CLI entry point
-├── server.py    # Chat server
-├── client.py    # Chat client
-├── install.sh   # Installer
-├── uninstall.sh # Uninstaller
-├── build.sh     # Build script for Homebrew formula
-└── homebrew-link/
-    └── Formula/
-        └── link.rb
+```sh
+brew uninstall link
+brew untap Spider-Man-Engineer/link
 ```
 
 ## 📝 License

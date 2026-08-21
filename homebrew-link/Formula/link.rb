@@ -1,5 +1,5 @@
 class Link < Formula
-  desc "Terminal chat app with room invite codes"
+  desc "Live Instant Network Kommunication — terminal chat with room invite codes"
   homepage "https://github.com/Spider-Man-Engineer/L-I-N-K"
   url "https://github.com/Spider-Man-Engineer/L-I-N-K/archive/refs/tags/v0.1.0.tar.gz"
   sha256 "PLACEHOLDER"
