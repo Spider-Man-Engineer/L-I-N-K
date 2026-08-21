@@ -90,12 +90,13 @@ def handle_client(client):
                 room_code = generate_code()
                 while room_code in rooms:
                     room_code = generate_code()
-                color = get_next_color(room_code)
                 rooms[room_code] = {
                     "clients": {client: username},
-                    "colors": {username: color},
+                    "colors": {},
                     "owner": username
                 }
+                color = get_next_color(room_code)
+                rooms[room_code]["colors"][username] = color
                 client.send(f"CREATED:{room_code}:{color}".encode('utf-8'))
                 log_room(room_code, f"{BRIGHT}{username}{R} created room")
 
